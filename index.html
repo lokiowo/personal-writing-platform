@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人码字编辑器</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a class="nav-brand" href="#" data-view="home">个人码字编辑器</a>
+      <button class="nav-toggle" id="navToggle" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#" data-view="home" class="active">首页</a></li>
+        <li><a href="#" data-view="editor">码字</a></li>
+        <li><a href="#" data-view="checkin">签到</a></li>
+        <li><a href="#" data-view="stats">统计</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ==================== 首页 ==================== -->
+  <main id="view-home" class="view active">
+    <!-- Hero -->
+    <section class="hero">
+      <p class="hero-date" id="heroDate"></p>
+      <h1 class="hero-title">今天也来写点什么吧</h1>
+      <p class="hero-sub">贵在坚持，笔耕不辍</p>
+    </section>
+
+    <!-- 概览卡片 -->
+    <section class="overview">
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num" id="homeTodayWords">0</span>
+          <span class="stat-label">今日字数</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="homeGoal">0 / 2000</span>
+          <span class="stat-label">写作目标</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="homeStreak">0</span>
+          <span class="stat-label">连续签到</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="homeMonthWords">0</span>
+          <span class="stat-label">本月字数</span>
+        </div>
+      </div>
+      <!-- 目标进度条 -->
+      <div class="progress-wrap">
+        <div class="progress-bar">
+          <div class="progress-fill" id="homeProgress"></div>
+        </div>
+        <span class="progress-text" id="homeProgressText">0%</span>
+      </div>
+    </section>
+
+    <!-- 最近文章 -->
+    <section class="recent-articles" id="homeRecent">
+      <h2 class="section-title">最近编辑</h2>
+      <div class="recent-list" id="homeRecentList">
+        <p class="empty-hint">来过，就算被记住。没有写作的日子，也可以轻轻打一个勾。</p>
+      </div>
+    </section>
+
+    <!-- 快捷按钮 -->
+    <section class="quick-actions">
+      <button class="btn btn-primary" data-view="editor" data-action="new">开始写作</button>
+      <button class="btn btn-outline" id="btnHomeCheckin">今日签到</button>
+      <button class="btn btn-outline" data-view="stats">查看统计</button>
+    </section>
+  </main>
+
+  <!-- ==================== 编辑器 ==================== -->
+  <main id="view-editor" class="view">
+    <div class="editor-layout">
+      <!-- 侧边栏：文章列表 -->
+      <aside class="editor-sidebar" id="editorSidebar">
+        <div class="sidebar-header">
+          <h2>文章列表</h2>
+          <button class="btn btn-sm btn-primary" id="btnNewArticle">+ 新建</button>
+        </div>
+        <div class="sidebar-search">
+          <input type="text" id="articleSearch" placeholder="搜索文章标题...">
+        </div>
+        <ul class="article-list" id="articleList"></ul>
+        <p class="sidebar-hint" id="sidebarHint">还没有文章，点击「新建」以开始</p>
+      </aside>
+
+      <!-- 主编辑区 -->
+      <div class="editor-main" id="editorMain">
+        <div class="editor-empty" id="editorEmpty">
+          <p>选择一篇文章，或新建一篇。</p>
+        </div>
+
+        <div class="editor-workspace hidden" id="editorWorkspace">
+          <!-- 工具栏 -->
+          <div class="editor-toolbar">
+            <div class="toolbar-left">
+              <input type="text" class="editor-title-input" id="editorTitle" placeholder="文章标题...">
+              <div class="editor-meta">
+                <span id="editorWordCount">0 字</span>
+                <span class="meta-sep">|</span>
+                <span id="editorSaveStatus">已保存</span>
+                <span class="meta-sep">|</span>
+                <span id="editorLastModified"></span>
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <!-- 字体样式 -->
+              <select id="fontFamily" class="tool-select" title="字体">
+                <option value="serif">衬线</option>
+                <option value="sans-serif">无衬线</option>
+                <option value="monospace">等宽</option>
+              </select>
+              <select id="fontSize" class="tool-select" title="字号">
+                <option value="14px">小</option>
+                <option value="16px" selected>中</option>
+                <option value="18px">大</option>
+                <option value="20px">特大</option>
+              </select>
+              <button class="tool-btn" id="btnBold" title="粗体">B</button>
+              <button class="tool-btn" id="btnItalic" title="斜体"><i>I</i></button>
+              <button class="tool-btn" id="btnUnderline" title="下划线"><u>U</u></button>
+              <button class="btn btn-sm btn-outline" id="btnExportTxt">导出 TXT</button>
+              <button class="btn btn-sm btn-outline" id="btnRenameArticle">重命名</button>
+              <button class="btn btn-sm btn-danger" id="btnDeleteArticle">删除</button>
+            </div>
+          </div>
+
+          <!-- 章节区域 -->
+          <div class="chapter-bar" id="chapterBar">
+            <span class="chapter-label">章节：</span>
+            <div class="chapter-tabs" id="chapterTabs"></div>
+            <button class="btn btn-sm btn-outline" id="btnAddChapter">+ 新章节</button>
+          </div>
+
+          <!-- 正文编辑区 -->
+          <textarea class="editor-textarea" id="editorContent" placeholder="开始写作..."></textarea>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== 签到页 ==================== -->
+  <main id="view-checkin" class="view">
+    <div class="checkin-page">
+      <section class="checkin-header">
+        <h2>每日签到</h2>
+        <p class="checkin-date" id="checkinDate"></p>
+        <button class="btn btn-primary btn-lg" id="btnCheckin">签到打卡</button>
+        <p class="checkin-status" id="checkinStatus"></p>
+      </section>
+
+      <section class="checkin-stats">
+        <div class="stat-card">
+          <span class="stat-num" id="checkinStreak">0</span>
+          <span class="stat-label">连续签到</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="checkinMonthCount">0</span>
+          <span class="stat-label">本月签到</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="checkinPoints">0</span>
+          <span class="stat-label">积分</span>
+        </div>
+      </section>
+
+      <!-- 日历 -->
+      <section class="calendar-wrap">
+        <div class="calendar-nav">
+          <button class="btn btn-sm btn-outline" id="calPrev">◀</button>
+          <span class="calendar-month" id="calMonth"></span>
+          <button class="btn btn-sm btn-outline" id="calNext">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </section>
+
+      <!-- 奖励 -->
+      <section class="rewards-section">
+        <h2 class="section-title">积分奖励</h2>
+        <div class="rewards-info">
+          <p>每次签到获得 <strong>10</strong> 积分，连续签到额外奖励 <strong>+5</strong> 积分。</p>
+        </div>
+        <div class="gift-list" id="giftList">
+          <div class="gift-card" data-cost="50">
+            <span class="gift-icon">🏆</span>
+            <span class="gift-name">码字达人徽章</span>
+            <span class="gift-cost">50 积分</span>
+            <button class="btn btn-sm btn-primary gift-btn">兑换</button>
+          </div>
+          <div class="gift-card" data-cost="100">
+            <span class="gift-icon">📖</span>
+            <span class="gift-name">一句喜欢的诗</span>
+            <span class="gift-cost">100 积分</span>
+            <button class="btn btn-sm btn-primary gift-btn">兑换</button>
+          </div>
+          <div class="gift-card" data-cost="200">
+            <span class="gift-icon">🌿</span>
+            <span class="gift-name">一片宁静的风景</span>
+            <span class="gift-cost">200 积分</span>
+            <button class="btn btn-sm btn-primary gift-btn">兑换</button>
+          </div>
+          <div class="gift-card" data-cost="500">
+            <span class="gift-icon">✨</span>
+            <span class="gift-name">给自己的一封信</span>
+            <span class="gift-cost">500 积分</span>
+            <button class="btn btn-sm btn-primary gift-btn">兑换</button>
+          </div>
+        </div>
+        <div class="redeemed-gifts" id="redeemedGifts">
+          <h3>已兑换的礼物</h3>
+          <div id="redeemedList">
+            <p class="empty-hint">还没有兑换过礼物。</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ==================== 统计页 ==================== -->
+  <main id="view-stats" class="view">
+    <div class="stats-page">
+      <h2 class="page-title">写作统计</h2>
+
+      <!-- 目标设置 -->
+      <section class="goal-setting">
+        <label>每日写作目标：</label>
+        <input type="number" id="dailyGoal" value="2000" min="100" step="100">
+        <span>字</span>
+        <button class="btn btn-sm btn-primary" id="btnSaveGoal">保存</button>
+      </section>
+
+      <!-- 统计概览 -->
+      <section class="stats-overview">
+        <div class="stat-card">
+          <span class="stat-num" id="statToday">0</span>
+          <span class="stat-label">今日字数</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="statMonth">0</span>
+          <span class="stat-label">本月字数</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="statTotal">0</span>
+          <span class="stat-label">累计字数</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="statArticles">0</span>
+          <span class="stat-label">文章数</span>
+        </div>
+      </section>
+
+      <!-- 趋势图 -->
+      <section class="trend-chart">
+        <h3>最近 7 天写作趋势</h3>
+        <div class="chart-container">
+          <svg id="trendChart" viewBox="0 0 600 200" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+      </section>
+
+      <!-- 作品管理 -->
+      <section class="works-management">
+        <h3>作品管理</h3>
+        <div class="works-toolbar">
+          <select id="worksSort" class="tool-select">
+            <option value="updatedAt">按修改时间</option>
+            <option value="createdAt">按创建时间</option>
+            <option value="title">按标题</option>
+          </select>
+          <button class="btn btn-sm btn-outline" id="btnExportAll">导出全部备份</button>
+          <button class="btn btn-sm btn-outline" id="btnImportBackup">导入备份</button>
+          <input type="file" id="importFile" accept=".json" class="hidden">
+        </div>
+        <div class="works-table-wrap">
+          <table class="works-table">
+            <thead>
+              <tr>
+                <th>标题</th>
+                <th>字数</th>
+                <th>章节</th>
+                <th>创建时间</th>
+                <th>修改时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="worksTableBody"></tbody>
+          </table>
+          <p class="empty-hint hidden" id="worksEmpty">还没有作品。</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Toast / 弹窗容器 -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- 确认对话框 -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal-box">
+      <p class="modal-msg" id="modalMsg"></p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="modalCancel">取消</button>
+        <button class="btn btn-danger" id="modalConfirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 礼物展示弹窗 -->
+  <div class="modal-overlay hidden" id="giftModal">
+    <div class="modal-box gift-modal">
+      <div id="giftModalContent"></div>
+      <button class="btn btn-primary" id="giftModalClose">关闭</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
