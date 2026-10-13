@@ -4,302 +4,633 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>个人码字编辑器</title>
+  <title>我的小小世界</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <!-- 导航栏 -->
-  <nav class="navbar" id="navbar">
-    <div class="nav-inner">
-      <a class="nav-brand" href="#" data-view="home">个人码字编辑器</a>
-      <button class="nav-toggle" id="navToggle" aria-label="菜单">
-        <span></span><span></span><span></span>
-      </button>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#" data-view="home" class="active">首页</a></li>
-        <li><a href="#" data-view="editor">码字</a></li>
-        <li><a href="#" data-view="checkin">签到</a></li>
-        <li><a href="#" data-view="stats">统计</a></li>
-      </ul>
-    </div>
-  </nav>
-
-  <!-- ==================== 首页 ==================== -->
-  <main id="view-home" class="view active">
-    <!-- Hero -->
-    <section class="hero">
-      <p class="hero-date" id="heroDate"></p>
-      <h1 class="hero-title">今天也来写点什么吧</h1>
-      <p class="hero-sub">贵在坚持，笔耕不辍</p>
-    </section>
-
-    <!-- 概览卡片 -->
-    <section class="overview">
-      <div class="stat-row">
-        <div class="stat-card">
-          <span class="stat-num" id="homeTodayWords">0</span>
-          <span class="stat-label">今日字数</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="homeGoal">0 / 2000</span>
-          <span class="stat-label">写作目标</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="homeStreak">0</span>
-          <span class="stat-label">连续签到</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="homeMonthWords">0</span>
-          <span class="stat-label">本月字数</span>
-        </div>
+  <div class="shell">
+    <!-- 导航栏 -->
+    <nav class="navbar" id="navbar">
+      <div class="nav-inner">
+        <a class="nav-brand" href="#" data-view="home">我的小小世界</a>
+        <button class="nav-toggle" id="navToggle" aria-label="菜单">
+          <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#" data-view="home" class="active">首页</a></li>
+          <li><a href="#" data-view="editor">码字</a></li>
+          <li><a href="#" data-view="story">工坊</a></li>
+          <li><a href="#" data-view="checkin">签到</a></li>
+          <li><a href="#" data-view="stats">统计</a></li>
+        </ul>
       </div>
-      <!-- 目标进度条 -->
-      <div class="progress-wrap">
-        <div class="progress-bar">
-          <div class="progress-fill" id="homeProgress"></div>
+    </nav>
+
+    <!-- ==================== 首页 ==================== -->
+    <main id="view-home" class="view active">
+      <!-- Hero -->
+      <section class="hero">
+        <p class="hero-date" id="heroDate"></p>
+        <h1 class="hero-title">在这里，把日子写成句子。</h1>
+        <p class="hero-sub">这是一本只属于你的写作手账。没有催促，也没有围观。你写下的字句只会留在这台电脑的浏览器里，安静地等你下次打开。</p>
+      </section>
+
+      <!-- 概览卡片 -->
+      <section class="overview">
+        <div class="stat-row">
+          <div class="stat-card">
+            <span class="stat-num" id="homeTodayWords">0</span>
+            <span class="stat-label">今日字数</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="homeGoal">0 / 2000</span>
+            <span class="stat-label">写作目标</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="homeStreak">0</span>
+            <span class="stat-label">连续签到</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="homeMonthWords">0</span>
+            <span class="stat-label">本月字数</span>
+          </div>
         </div>
-        <span class="progress-text" id="homeProgressText">0%</span>
-      </div>
-    </section>
-
-    <!-- 最近文章 -->
-    <section class="recent-articles" id="homeRecent">
-      <h2 class="section-title">最近编辑</h2>
-      <div class="recent-list" id="homeRecentList">
-        <p class="empty-hint">来过，就算被记住。没有写作的日子，也可以轻轻打一个勾。</p>
-      </div>
-    </section>
-
-    <!-- 快捷按钮 -->
-    <section class="quick-actions">
-      <button class="btn btn-primary" data-view="editor" data-action="new">开始写作</button>
-      <button class="btn btn-outline" id="btnHomeCheckin">今日签到</button>
-      <button class="btn btn-outline" data-view="stats">查看统计</button>
-    </section>
-  </main>
-
-  <!-- ==================== 编辑器 ==================== -->
-  <main id="view-editor" class="view">
-    <div class="editor-layout">
-      <!-- 侧边栏：文章列表 -->
-      <aside class="editor-sidebar" id="editorSidebar">
-        <div class="sidebar-header">
-          <h2>文章列表</h2>
-          <button class="btn btn-sm btn-primary" id="btnNewArticle">+ 新建</button>
+        <!-- 目标进度条 -->
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill" id="homeProgress"></div>
+          </div>
+          <span class="progress-text" id="homeProgressText">0%</span>
         </div>
-        <div class="sidebar-search">
-          <input type="text" id="articleSearch" placeholder="搜索文章标题...">
-        </div>
-        <ul class="article-list" id="articleList"></ul>
-        <p class="sidebar-hint" id="sidebarHint">还没有文章，点击「新建」以开始</p>
-      </aside>
+      </section>
 
-      <!-- 主编辑区 -->
-      <div class="editor-main" id="editorMain">
-        <div class="editor-empty" id="editorEmpty">
-          <p>选择一篇文章，或新建一篇。</p>
+      <!-- 最近文章 -->
+      <section class="recent-articles" id="homeRecent">
+        <h2 class="section-title">最近编辑</h2>
+        <div class="recent-list" id="homeRecentList">
+          <p class="empty-hint">来过，就算被记住。没有写作的日子，也可以轻轻打一个勾。</p>
         </div>
+      </section>
 
-        <div class="editor-workspace hidden" id="editorWorkspace">
-          <!-- 工具栏 -->
-          <div class="editor-toolbar">
-            <div class="toolbar-left">
-              <input type="text" class="editor-title-input" id="editorTitle" placeholder="文章标题...">
-              <div class="editor-meta">
-                <span id="editorWordCount">0 字</span>
-                <span class="meta-sep">|</span>
-                <span id="editorSaveStatus">已保存</span>
-                <span class="meta-sep">|</span>
-                <span id="editorLastModified"></span>
+      <!-- 快捷按钮 -->
+      <section class="quick-actions">
+        <button class="btn btn-primary" data-view="editor" data-action="new">开始写作</button>
+        <button class="btn btn-outline" id="btnHomeCheckin">今日签到</button>
+        <button class="btn btn-outline" data-view="stats">查看统计</button>
+      </section>
+    </main>
+
+    <!-- ==================== 编辑器 ==================== -->
+    <main id="view-editor" class="view">
+      <div class="editor-layout">
+        <!-- 侧边栏：文章列表 -->
+        <aside class="editor-sidebar" id="editorSidebar">
+          <div class="sidebar-header">
+            <h2>文章列表</h2>
+            <button class="btn btn-sm btn-primary" id="btnNewArticle">+ 新建</button>
+          </div>
+          <div class="sidebar-search">
+            <input type="text" id="articleSearch" placeholder="搜索文章标题...">
+          </div>
+          <ul class="article-list" id="articleList"></ul>
+          <p class="sidebar-hint" id="sidebarHint">还没有文章，点击「新建」以开始</p>
+        </aside>
+
+        <!-- 主编辑区 -->
+        <div class="editor-main" id="editorMain">
+          <div class="editor-empty" id="editorEmpty">
+            <p>选择一篇文章，或新建一篇。</p>
+          </div>
+
+          <div class="editor-workspace hidden" id="editorWorkspace">
+            <!-- 工具栏 -->
+            <div class="editor-toolbar">
+              <div class="toolbar-left">
+                <input type="text" class="editor-title-input" id="editorTitle" placeholder="文章标题...">
+                <div class="editor-meta">
+                  <span id="editorWordCount">0 字</span>
+                  <span class="meta-sep">|</span>
+                  <span id="editorSaveStatus">已保存</span>
+                  <span class="meta-sep">|</span>
+                  <span id="editorLastModified"></span>
+                </div>
+              </div>
+              <div class="toolbar-right">
+                <!-- 字体样式 -->
+                <select id="fontFamily" class="tool-select" title="字体">
+                  <option value="serif">衬线</option>
+                  <option value="sans-serif">无衬线</option>
+                  <option value="monospace">等宽</option>
+                </select>
+                <select id="fontSize" class="tool-select" title="字号">
+                  <option value="14px">小</option>
+                  <option value="16px" selected>中</option>
+                  <option value="18px">大</option>
+                  <option value="20px">特大</option>
+                </select>
+                <button class="tool-btn" id="btnBold" title="粗体">B</button>
+                <button class="tool-btn" id="btnItalic" title="斜体"><i>I</i></button>
+                <button class="tool-btn" id="btnUnderline" title="下划线"><u>U</u></button>
+                <button class="btn btn-sm btn-outline" id="btnExportTxt">导出 TXT</button>
+                <button class="btn btn-sm btn-outline" id="btnRenameArticle">重命名</button>
+                <button class="btn btn-sm btn-danger" id="btnDeleteArticle">删除</button>
               </div>
             </div>
-            <div class="toolbar-right">
-              <!-- 字体样式 -->
-              <select id="fontFamily" class="tool-select" title="字体">
-                <option value="serif">衬线</option>
-                <option value="sans-serif">无衬线</option>
-                <option value="monospace">等宽</option>
+
+            <!-- 章节区域 -->
+            <div class="chapter-bar" id="chapterBar">
+              <span class="chapter-label">章节：</span>
+              <div class="chapter-tabs" id="chapterTabs"></div>
+              <button class="btn btn-sm btn-outline" id="btnAddChapter">+ 新章节</button>
+            </div>
+
+            <!-- 正文编辑区 -->
+            <textarea class="editor-textarea" id="editorContent" placeholder="开始写作..."></textarea>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ==================== 签到页 ==================== -->
+    <main id="view-checkin" class="view">
+      <div class="checkin-page">
+        <section class="checkin-header">
+          <h2>每日签到</h2>
+          <p class="checkin-date" id="checkinDate"></p>
+          <button class="btn btn-primary btn-lg" id="btnCheckin">签到打卡</button>
+          <p class="checkin-status" id="checkinStatus"></p>
+        </section>
+
+        <section class="checkin-stats">
+          <div class="stat-card">
+            <span class="stat-num" id="checkinStreak">0</span>
+            <span class="stat-label">连续签到</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="checkinMonthCount">0</span>
+            <span class="stat-label">本月签到</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="checkinPoints">0</span>
+            <span class="stat-label">积分</span>
+          </div>
+        </section>
+
+        <!-- 日历 -->
+        <section class="calendar-wrap">
+          <div class="calendar-nav">
+            <button class="btn btn-sm btn-outline" id="calPrev">◀</button>
+            <span class="calendar-month" id="calMonth"></span>
+            <button class="btn btn-sm btn-outline" id="calNext">▶</button>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </section>
+
+        <!-- 奖励 -->
+        <section class="rewards-section">
+          <h2 class="section-title">积分奖励</h2>
+          <div class="rewards-info">
+            <p>每次签到获得 <strong>10</strong> 积分，连续签到额外奖励 <strong>+5</strong> 积分。</p>
+          </div>
+          <div class="gift-list" id="giftList">
+            <div class="gift-card" data-cost="50">
+              <span class="gift-icon">🏆</span>
+              <span class="gift-name">码字达人徽章</span>
+              <span class="gift-cost">50 积分</span>
+              <button class="btn btn-sm btn-primary gift-btn">兑换</button>
+            </div>
+            <div class="gift-card" data-cost="100">
+              <span class="gift-icon">📖</span>
+              <span class="gift-name">一句喜欢的诗</span>
+              <span class="gift-cost">100 积分</span>
+              <button class="btn btn-sm btn-primary gift-btn">兑换</button>
+            </div>
+            <div class="gift-card" data-cost="200">
+              <span class="gift-icon">🌿</span>
+              <span class="gift-name">一片宁静的风景</span>
+              <span class="gift-cost">200 积分</span>
+              <button class="btn btn-sm btn-primary gift-btn">兑换</button>
+            </div>
+            <div class="gift-card" data-cost="500">
+              <span class="gift-icon">✨</span>
+              <span class="gift-name">给自己的一封信</span>
+              <span class="gift-cost">500 积分</span>
+              <button class="btn btn-sm btn-primary gift-btn">兑换</button>
+            </div>
+          </div>
+          <div class="redeemed-gifts" id="redeemedGifts">
+            <h3>已兑换的礼物</h3>
+            <div id="redeemedList">
+              <p class="empty-hint">还没有兑换过礼物。</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ==================== 统计页 ==================== -->
+    <main id="view-stats" class="view">
+      <div class="stats-page">
+        <h2 class="page-title">写作统计</h2>
+
+        <!-- 目标设置 -->
+        <section class="goal-setting">
+          <label>每日写作目标：</label>
+          <input type="number" id="dailyGoal" value="2000" min="100" step="100">
+          <span>字</span>
+          <button class="btn btn-sm btn-primary" id="btnSaveGoal">保存</button>
+        </section>
+
+        <!-- 统计概览 -->
+        <section class="stats-overview">
+          <div class="stat-card">
+            <span class="stat-num" id="statToday">0</span>
+            <span class="stat-label">今日字数</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="statMonth">0</span>
+            <span class="stat-label">本月字数</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="statTotal">0</span>
+            <span class="stat-label">累计字数</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="statArticles">0</span>
+            <span class="stat-label">文章数</span>
+          </div>
+        </section>
+
+        <!-- 趋势图 -->
+        <section class="trend-chart">
+          <h3>最近 7 天写作趋势</h3>
+          <div class="chart-container">
+            <svg id="trendChart" viewBox="0 0 600 200" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+        </section>
+
+        <!-- 作品管理 -->
+        <section class="works-management">
+          <h3>作品管理</h3>
+          <div class="works-toolbar">
+            <select id="worksSort" class="tool-select">
+              <option value="updatedAt">按修改时间</option>
+              <option value="createdAt">按创建时间</option>
+              <option value="title">按标题</option>
+            </select>
+            <button class="btn btn-sm btn-outline" id="btnExportAll">导出全部备份</button>
+            <button class="btn btn-sm btn-outline" id="btnImportBackup">导入备份</button>
+            <input type="file" id="importFile" accept=".json" class="hidden">
+          </div>
+          <div class="works-table-wrap">
+            <table class="works-table">
+              <thead>
+                <tr>
+                  <th>标题</th>
+                  <th>字数</th>
+                  <th>章节</th>
+                  <th>创建时间</th>
+                  <th>修改时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="worksTableBody"></tbody>
+            </table>
+            <p class="empty-hint hidden" id="worksEmpty">还没有作品。</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ==================== 故事工坊 ==================== -->
+    <main id="view-story" class="view story-workshop-view">
+      <!-- 顶部项目栏 -->
+      <div class="sw-topbar">
+        <div class="sw-project-select">
+          <select id="swProjectSelect">
+            <option value="">请选择或创建作品...</option>
+          </select>
+          <button class="btn btn-sm btn-outline" id="swBtnNewProject">+ 新作品</button>
+          <button class="btn btn-sm btn-outline" id="swBtnEditProject" style="display:none">编辑</button>
+          <button class="btn btn-sm btn-outline" id="swBtnDelProject" style="display:none">删除</button>
+        </div>
+        <div class="sw-topbar-actions" id="swTopbarActions" style="display:none">
+          <span class="sw-project-status" id="swProjectStatus"></span>
+          <button class="btn btn-sm btn-outline" id="swBtnExportStory">导出此作品</button>
+        </div>
+      </div>
+
+      <!-- 主区域：子标签栏 + 内容 -->
+      <div class="sw-main" id="swMain" style="display:none">
+        <nav class="sw-tabs" id="swTabs">
+          <a href="#" class="sw-tab active" data-swt="inspiration">灵感</a>
+          <a href="#" class="sw-tab" data-swt="mindmap">导图</a>
+          <a href="#" class="sw-tab" data-swt="outline">大纲</a>
+          <a href="#" class="sw-tab" data-swt="plotcards">情节</a>
+          <a href="#" class="sw-tab" data-swt="characters">人物</a>
+          <a href="#" class="sw-tab" data-swt="timeline">时间线</a>
+        </nav>
+
+        <div class="sw-content" id="swContent">
+          <!-- 灵感面板 -->
+          <div class="sw-panel active" id="swp-inspiration">
+            <div class="inspiration-quick">
+              <textarea id="inspQuickInput" placeholder="快速记录灵感...（回车保存，Shift+回车换行）" rows="2"></textarea>
+              <div class="insp-quick-bar">
+                <select id="inspQuickType">
+                  <option value="idea">想法</option>
+                  <option value="dialogue">对话</option>
+                  <option value="plot">情节设想</option>
+                  <option value="question">人物问题</option>
+                  <option value="world">世界观</option>
+                  <option value="other">其他</option>
+                </select>
+                <input type="text" id="inspQuickTags" placeholder="标签，用逗号分隔">
+                <button class="btn btn-sm btn-primary" id="btnInspQuickSave">保存</button>
+              </div>
+            </div>
+            <div class="inspiration-filters">
+              <input type="text" id="inspSearch" placeholder="搜索灵感...">
+              <select id="inspFilterType">
+                <option value="">全部类型</option>
+                <option value="idea">想法</option>
+                <option value="dialogue">对话</option>
+                <option value="plot">情节设想</option>
+                <option value="question">人物问题</option>
+                <option value="world">世界观</option>
+                <option value="other">其他</option>
               </select>
-              <select id="fontSize" class="tool-select" title="字号">
-                <option value="14px">小</option>
-                <option value="16px" selected>中</option>
-                <option value="18px">大</option>
-                <option value="20px">特大</option>
+              <select id="inspFilterStatus">
+                <option value="">全部状态</option>
+                <option value="pending">待整理</option>
+                <option value="adopted">已采用</option>
+                <option value="alternative">备选方案</option>
+                <option value="discarded">已舍弃</option>
               </select>
-              <button class="tool-btn" id="btnBold" title="粗体">B</button>
-              <button class="tool-btn" id="btnItalic" title="斜体"><i>I</i></button>
-              <button class="tool-btn" id="btnUnderline" title="下划线"><u>U</u></button>
-              <button class="btn btn-sm btn-outline" id="btnExportTxt">导出 TXT</button>
-              <button class="btn btn-sm btn-outline" id="btnRenameArticle">重命名</button>
-              <button class="btn btn-sm btn-danger" id="btnDeleteArticle">删除</button>
+            </div>
+            <div class="inspiration-list" id="inspList"></div>
+            <p class="empty-hint" id="inspEmpty">还没有灵感，在上方快速输入或选择一个作品开始记录。</p>
+          </div>
+
+          <!-- 思维导图面板 -->
+          <div class="sw-panel" id="swp-mindmap">
+            <div class="mindmap-toolbar">
+              <button class="btn btn-sm btn-outline" id="mmBtnAddRoot">+ 中心节点</button>
+              <button class="btn btn-sm btn-outline" id="mmBtnAddChild" disabled>+ 子节点</button>
+              <button class="btn btn-sm btn-outline" id="mmBtnEditNode" disabled>编辑</button>
+              <button class="btn btn-sm btn-outline" id="mmBtnDeleteNode" disabled>删除</button>
+              <button class="btn btn-sm btn-outline" id="mmBtnFit">适配画布</button>
+              <button class="btn btn-sm btn-outline" id="mmBtnCenter">回到中心</button>
+              <button class="btn btn-sm btn-outline" id="mmBtnExportPng">导出 PNG</button>
+              <span class="mm-node-info" id="mmNodeInfo" style="display:none"></span>
+            </div>
+            <div class="mindmap-canvas-wrap" id="mmCanvasWrap">
+              <svg id="mmSvg"></svg>
+            </div>
+            <!-- 节点编辑面板 -->
+            <div class="mm-edit-panel hidden" id="mmEditPanel">
+              <h4>节点详情</h4>
+              <label>标题</label><input type="text" id="mmEditTitle">
+              <label>备注</label><textarea id="mmEditNote" rows="2"></textarea>
+              <label>状态</label><select id="mmEditStatus">
+                <option value="idea">灵感</option>
+                <option value="alternative">备选</option>
+                <option value="adopted">已采用</option>
+                <option value="discarded">已舍弃</option>
+              </select>
+              <label>标签</label><input type="text" id="mmEditTags" placeholder="逗号分隔">
+              <div class="mm-edit-actions">
+                <button class="btn btn-sm btn-primary" id="mmBtnSaveNode">保存</button>
+                <button class="btn btn-sm btn-outline" id="mmBtnConvertPlot">转为情节</button>
+                <button class="btn btn-sm btn-outline" id="mmBtnConvertOutline">转为大纲</button>
+                <button class="btn btn-sm btn-outline" id="mmBtnLinkInsp">关联灵感</button>
+              </div>
             </div>
           </div>
 
-          <!-- 章节区域 -->
-          <div class="chapter-bar" id="chapterBar">
-            <span class="chapter-label">章节：</span>
-            <div class="chapter-tabs" id="chapterTabs"></div>
-            <button class="btn btn-sm btn-outline" id="btnAddChapter">+ 新章节</button>
+          <!-- 大纲面板 -->
+          <div class="sw-panel" id="swp-outline">
+            <div class="outline-toolbar">
+              <button class="btn btn-sm btn-primary" id="olBtnAddRoot">+ 根节点</button>
+              <button class="btn btn-sm btn-outline" id="olBtnAddChild" disabled>+ 子节点</button>
+              <button class="btn btn-sm btn-outline" id="olBtnAddSibling" disabled>+ 同级</button>
+              <button class="btn btn-sm btn-outline" id="olBtnEdit" disabled>编辑</button>
+              <button class="btn btn-sm btn-outline" id="olBtnDelete" disabled>删除</button>
+              <button class="btn btn-sm btn-outline" id="olBtnCopy" disabled>复制子树</button>
+              <input type="text" id="olSearch" placeholder="搜索大纲...">
+              <select id="olFilterStatus">
+                <option value="">全部</option>
+                <option value="pending">待写</option>
+                <option value="writing">写作中</option>
+                <option value="done">已完成</option>
+              </select>
+            </div>
+            <div class="outline-tree" id="outlineTree"></div>
+            <p class="empty-hint" id="olEmpty">还没有大纲节点，点击上方添加。</p>
+            <!-- 大纲节点编辑面板 -->
+            <div class="ol-edit-panel hidden" id="olEditPanel">
+              <h4>大纲节点详情</h4>
+              <label>标题</label><input type="text" id="olEditTitle">
+              <label>类型</label><select id="olEditType">
+                <option value="act">幕</option>
+                <option value="chapter">章</option>
+                <option value="scene">场景</option>
+                <option value="beat">节拍</option>
+                <option value="other">其他</option>
+              </select>
+              <label>摘要</label><textarea id="olEditSummary" rows="2"></textarea>
+              <label>详细备注</label><textarea id="olEditDetail" rows="3"></textarea>
+              <label>创作状态</label><select id="olEditStatus">
+                <option value="pending">待写</option>
+                <option value="writing">写作中</option>
+                <option value="done">已完成</option>
+              </select>
+              <label>标签</label><input type="text" id="olEditTags" placeholder="逗号分隔">
+              <label>关联正文文章</label><select id="olEditArticle">
+                <option value="">无</option>
+              </select>
+              <div class="ol-edit-actions">
+                <button class="btn btn-sm btn-primary" id="olBtnSave">保存</button>
+                <button class="btn btn-sm btn-outline" id="olBtnLinkPlot">关联情节</button>
+                <button class="btn btn-sm btn-outline" id="olBtnLinkChar">关联人物</button>
+              </div>
+            </div>
           </div>
 
-          <!-- 正文编辑区 -->
-          <textarea class="editor-textarea" id="editorContent" placeholder="开始写作..."></textarea>
+          <!-- 情节卡片墙面板 -->
+          <div class="sw-panel" id="swp-plotcards">
+            <div class="pc-toolbar">
+              <button class="btn btn-sm btn-primary" id="pcBtnNew">+ 新情节</button>
+              <input type="text" id="pcSearch" placeholder="搜索情节...">
+              <select id="pcFilterStatus">
+                <option value="">全部状态</option>
+                <option value="draft">构思</option>
+                <option value="outlined">已大纲</option>
+                <option value="writing">写作中</option>
+                <option value="done">已完成</option>
+              </select>
+              <select id="pcGroupBy">
+                <option value="none">不分组</option>
+                <option value="status">按状态</option>
+                <option value="chapter">按章节</option>
+              </select>
+            </div>
+            <div class="pc-wall" id="pcWall"></div>
+            <p class="empty-hint" id="pcEmpty">还没有情节卡片，点击上方创建。</p>
+            <!-- 情节详情面板 -->
+            <div class="pc-detail-panel hidden" id="pcDetailPanel">
+              <h4>情节详情</h4>
+              <label>标题</label><input type="text" id="pcEditTitle">
+              <label>一句话摘要</label><input type="text" id="pcEditSummary">
+              <label>状态</label><select id="pcEditStatus">
+                <option value="draft">构思</option>
+                <option value="outlined">已大纲</option>
+                <option value="writing">写作中</option>
+                <option value="done">已完成</option>
+              </select>
+              <label>关联人物</label><select id="pcEditChars" multiple style="height:80px"></select>
+              <label>标签</label><input type="text" id="pcEditTags" placeholder="逗号分隔">
+              <hr>
+              <h5>因果分析</h5>
+              <label>起因</label><textarea id="pcEditCause" rows="2"></textarea>
+              <label>人物行动</label><textarea id="pcEditAction" rows="2"></textarea>
+              <label>直接结果</label><textarea id="pcEditResult" rows="2"></textarea>
+              <label>后续影响</label><textarea id="pcEditAftermath" rows="2"></textarea>
+              <label>待解决问题</label><textarea id="pcEditUnresolved" rows="2"></textarea>
+              <label>关联伏笔</label><textarea id="pcEditForeshadowing" rows="2"></textarea>
+              <label>疑点标记</label>
+              <div class="pc-issues" id="pcIssues">
+                <label><input type="checkbox" value="motivation"> 动机不足</label>
+                <label><input type="checkbox" value="contradiction"> 前后矛盾</label>
+                <label><input type="checkbox" value="time"> 时间冲突</label>
+                <label><input type="checkbox" value="foreshadow"> 伏笔待回收</label>
+              </div>
+              <div class="pc-detail-actions">
+                <button class="btn btn-sm btn-primary" id="pcBtnSave">保存</button>
+                <button class="btn btn-sm btn-outline" id="pcBtnLinkOutline">关联大纲</button>
+                <button class="btn btn-sm btn-danger" id="pcBtnDelete">删除</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 人物面板 -->
+          <div class="sw-panel" id="swp-characters">
+            <div class="char-layout">
+              <div class="char-list-panel">
+                <div class="char-toolbar">
+                  <button class="btn btn-sm btn-primary" id="chBtnNew">+ 新人物</button>
+                  <input type="text" id="chSearch" placeholder="搜索人物...">
+                </div>
+                <div class="char-list" id="charList"></div>
+                <p class="empty-hint" id="chEmpty">还没有人物档案。</p>
+              </div>
+              <div class="char-relation-panel">
+                <h4>人物关系图</h4>
+                <div class="ch-rel-canvas-wrap" id="chRelCanvasWrap">
+                  <svg id="chRelSvg"></svg>
+                </div>
+                <div class="ch-rel-toolbar">
+                  <button class="btn btn-sm btn-outline" id="chBtnAddRel">+ 添加关系</button>
+                </div>
+              </div>
+            </div>
+            <!-- 人物详情 -->
+            <div class="ch-detail-panel hidden" id="chDetailPanel">
+              <h4>人物档案</h4>
+              <label>姓名</label><input type="text" id="chEditName">
+              <label>基本资料</label><textarea id="chEditBasic" rows="2"></textarea>
+              <label>外貌</label><textarea id="chEditAppearance" rows="2"></textarea>
+              <label>性格</label><textarea id="chEditPersonality" rows="2"></textarea>
+              <label>背景经历</label><textarea id="chEditBackground" rows="3"></textarea>
+              <label>目标与动机</label><textarea id="chEditGoal" rows="2"></textarea>
+              <label>秘密</label><textarea id="chEditSecret" rows="2"></textarea>
+              <label>成长与变化</label><textarea id="chEditGrowth" rows="2"></textarea>
+              <label>备注</label><textarea id="chEditNotes" rows="2"></textarea>
+              <label>标签</label><input type="text" id="chEditTags" placeholder="逗号分隔">
+              <div class="ch-detail-actions">
+                <button class="btn btn-sm btn-primary" id="chBtnSave">保存</button>
+                <button class="btn btn-sm btn-danger" id="chBtnDelete">删除</button>
+              </div>
+            </div>
+            <!-- 关系编辑 -->
+            <div class="ch-rel-edit hidden" id="chRelEdit">
+              <h4>编辑关系</h4>
+              <label>人物 A</label><select id="chRelFrom"></select>
+              <label>人物 B</label><select id="chRelTo"></select>
+              <label>关系类型</label><select id="chRelType">
+                <option>家人</option>
+                <option>朋友</option>
+                <option>恋人</option>
+                <option>敌人</option>
+                <option>师生</option>
+                <option>同事</option>
+                <option>上下级</option>
+                <option>陌生人</option>
+                <option>知己</option>
+                <option>其他</option>
+              </select>
+              <label>关系说明</label><textarea id="chRelDesc" rows="2"></textarea>
+              <label>关系状态</label><select id="chRelStatus">
+                <option>当前</option>
+                <option>过去</option>
+                <option>未来</option>
+                <option>已改变</option>
+              </select>
+              <label>备注</label><textarea id="chRelNotes" rows="2"></textarea>
+              <div class="ch-detail-actions">
+                <button class="btn btn-sm btn-primary" id="chBtnSaveRel">保存关系</button>
+                <button class="btn btn-sm btn-danger" id="chBtnDelRel" style="display:none">删除关系</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 时间线面板 -->
+          <div class="sw-panel" id="swp-timeline">
+            <div class="tl-toolbar">
+              <button class="btn btn-sm btn-primary" id="tlBtnNew">+ 新事件</button>
+              <select id="tlFilterChar">
+                <option value="">全部人物</option>
+              </select>
+            </div>
+            <div class="tl-list" id="tlList"></div>
+            <p class="empty-hint" id="tlEmpty">还没有时间线事件。</p>
+            <!-- 事件详情 -->
+            <div class="tl-detail-panel hidden" id="tlDetailPanel">
+              <h4>事件详情</h4>
+              <label>标题</label><input type="text" id="tlEditTitle">
+              <label>描述</label><textarea id="tlEditDesc" rows="3"></textarea>
+              <label>故事内发生时间</label><input type="text" id="tlEditTime" placeholder="如：第一幕第三天，或 2024年春">
+              <label>持续时间（可选）</label><input type="text" id="tlEditDuration" placeholder="如：三天，或一瞬间">
+              <label>参与人物</label><select id="tlEditChars" multiple style="height:80px"></select>
+              <label>关联情节</label><select id="tlEditPlots" multiple style="height:80px"></select>
+              <label>备注</label><textarea id="tlEditNote" rows="2"></textarea>
+              <div class="pc-issues">
+                <label><input type="checkbox" id="tlUncertain"> 时间不确定</label>
+              </div>
+              <label>先后约束</label><textarea id="tlEditConstraints" rows="2"
+                placeholder="事件ID，用逗号分隔，表示此事件必须在这些事件之后发生"></textarea>
+              <div class="ch-detail-actions">
+                <button class="btn btn-sm btn-primary" id="tlBtnSave">保存</button>
+                <button class="btn btn-sm btn-danger" id="tlBtnDelete">删除</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </main>
 
-  <!-- ==================== 签到页 ==================== -->
-  <main id="view-checkin" class="view">
-    <div class="checkin-page">
-      <section class="checkin-header">
-        <h2>每日签到</h2>
-        <p class="checkin-date" id="checkinDate"></p>
-        <button class="btn btn-primary btn-lg" id="btnCheckin">签到打卡</button>
-        <p class="checkin-status" id="checkinStatus"></p>
-      </section>
+      <!-- 空状态 -->
+      <div class="sw-empty" id="swEmpty">
+        <p>欢迎来到故事工坊。</p>
+        <p>在这里收集灵感、梳理构思、管理人物，让每一个故事都井井有条。</p>
+        <button class="btn btn-primary" id="swBtnCreateFirst">创建第一个作品</button>
+      </div>
+    </main>
 
-      <section class="checkin-stats">
-        <div class="stat-card">
-          <span class="stat-num" id="checkinStreak">0</span>
-          <span class="stat-label">连续签到</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="checkinMonthCount">0</span>
-          <span class="stat-label">本月签到</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="checkinPoints">0</span>
-          <span class="stat-label">积分</span>
-        </div>
-      </section>
-
-      <!-- 日历 -->
-      <section class="calendar-wrap">
-        <div class="calendar-nav">
-          <button class="btn btn-sm btn-outline" id="calPrev">◀</button>
-          <span class="calendar-month" id="calMonth"></span>
-          <button class="btn btn-sm btn-outline" id="calNext">▶</button>
-        </div>
-        <div class="calendar-grid" id="calendarGrid"></div>
-      </section>
-
-      <!-- 奖励 -->
-      <section class="rewards-section">
-        <h2 class="section-title">积分奖励</h2>
-        <div class="rewards-info">
-          <p>每次签到获得 <strong>10</strong> 积分，连续签到额外奖励 <strong>+5</strong> 积分。</p>
-        </div>
-        <div class="gift-list" id="giftList">
-          <div class="gift-card" data-cost="50">
-            <span class="gift-icon">🏆</span>
-            <span class="gift-name">码字达人徽章</span>
-            <span class="gift-cost">50 积分</span>
-            <button class="btn btn-sm btn-primary gift-btn">兑换</button>
-          </div>
-          <div class="gift-card" data-cost="100">
-            <span class="gift-icon">📖</span>
-            <span class="gift-name">一句喜欢的诗</span>
-            <span class="gift-cost">100 积分</span>
-            <button class="btn btn-sm btn-primary gift-btn">兑换</button>
-          </div>
-          <div class="gift-card" data-cost="200">
-            <span class="gift-icon">🌿</span>
-            <span class="gift-name">一片宁静的风景</span>
-            <span class="gift-cost">200 积分</span>
-            <button class="btn btn-sm btn-primary gift-btn">兑换</button>
-          </div>
-          <div class="gift-card" data-cost="500">
-            <span class="gift-icon">✨</span>
-            <span class="gift-name">给自己的一封信</span>
-            <span class="gift-cost">500 积分</span>
-            <button class="btn btn-sm btn-primary gift-btn">兑换</button>
-          </div>
-        </div>
-        <div class="redeemed-gifts" id="redeemedGifts">
-          <h3>已兑换的礼物</h3>
-          <div id="redeemedList">
-            <p class="empty-hint">还没有兑换过礼物。</p>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <!-- ==================== 统计页 ==================== -->
-  <main id="view-stats" class="view">
-    <div class="stats-page">
-      <h2 class="page-title">写作统计</h2>
-
-      <!-- 目标设置 -->
-      <section class="goal-setting">
-        <label>每日写作目标：</label>
-        <input type="number" id="dailyGoal" value="2000" min="100" step="100">
-        <span>字</span>
-        <button class="btn btn-sm btn-primary" id="btnSaveGoal">保存</button>
-      </section>
-
-      <!-- 统计概览 -->
-      <section class="stats-overview">
-        <div class="stat-card">
-          <span class="stat-num" id="statToday">0</span>
-          <span class="stat-label">今日字数</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="statMonth">0</span>
-          <span class="stat-label">本月字数</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="statTotal">0</span>
-          <span class="stat-label">累计字数</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="statArticles">0</span>
-          <span class="stat-label">文章数</span>
-        </div>
-      </section>
-
-      <!-- 趋势图 -->
-      <section class="trend-chart">
-        <h3>最近 7 天写作趋势</h3>
-        <div class="chart-container">
-          <svg id="trendChart" viewBox="0 0 600 200" preserveAspectRatio="xMidYMid meet"></svg>
-        </div>
-      </section>
-
-      <!-- 作品管理 -->
-      <section class="works-management">
-        <h3>作品管理</h3>
-        <div class="works-toolbar">
-          <select id="worksSort" class="tool-select">
-            <option value="updatedAt">按修改时间</option>
-            <option value="createdAt">按创建时间</option>
-            <option value="title">按标题</option>
-          </select>
-          <button class="btn btn-sm btn-outline" id="btnExportAll">导出全部备份</button>
-          <button class="btn btn-sm btn-outline" id="btnImportBackup">导入备份</button>
-          <input type="file" id="importFile" accept=".json" class="hidden">
-        </div>
-        <div class="works-table-wrap">
-          <table class="works-table">
-            <thead>
-              <tr>
-                <th>标题</th>
-                <th>字数</th>
-                <th>章节</th>
-                <th>创建时间</th>
-                <th>修改时间</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="worksTableBody"></tbody>
-          </table>
-          <p class="empty-hint hidden" id="worksEmpty">还没有作品。</p>
-        </div>
-      </section>
-    </div>
-  </main>
+    <footer class="site-footer">
+      <p>我的小小世界 · 字句只留在本地</p>
+    </footer>
+  </div>
 
   <!-- Toast / 弹窗容器 -->
   <div class="toast-container" id="toastContainer"></div>
@@ -323,7 +654,8 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=20261014"></script>
+  <script src="storyworkshop.js?v=20261014"></script>
 </body>
 
 </html>

@@ -113,6 +113,13 @@ var saveTimer = null;              // 自动保存定时器
 //  导航系统
 // ==============================
 function switchView(viewName) {
+  // 离开编辑器前，先保存尚未自动保存的内容，避免切换视图时丢失
+  var prev = document.querySelector('.view.active');
+  if (prev && prev.id === 'view-editor' && viewName !== 'editor') {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+    if (currentArticleId) autoSave();
+  }
+
   document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
   var target = document.getElementById('view-' + viewName);
   if (target) target.classList.add('active');
@@ -127,6 +134,7 @@ function switchView(viewName) {
   // 页面渲染
   if (viewName === 'home') renderHome();
   if (viewName === 'editor') renderEditor();
+  if (viewName === 'story') { if (typeof swOnViewEnter === 'function') swOnViewEnter(); }
   if (viewName === 'checkin') renderCheckin();
   if (viewName === 'stats') renderStats();
 }
@@ -302,6 +310,7 @@ function deleteArticle(id) {
       currentArticleId = null;
     }
     renderEditor();
+    renderStats();
     showToast('已删除');
   });
 }
@@ -443,6 +452,9 @@ function renderEditor() {
         deleteChapter(article.id, parseInt(this.getAttribute('data-idx')));
       });
       tab.addEventListener('click', function () {
+        // 切换章节前先保存当前章节未保存的内容，避免丢失
+        if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+        if (currentArticleId) autoSave();
         currentChapterIdx = i;
         renderEditor();
       });
@@ -785,7 +797,7 @@ document.getElementById('calNext').addEventListener('click', function () {
 //  积分奖励系统
 // ==============================
 var gifts = [
-  { name: '一首安静的歌', cost: 50, icon: '🎵', reveal: '闭上眼睛，听一首让你心静下来的歌吧。' },
+  { name: '码字达人徽章', cost: 50, icon: '🏆', reveal: '恭喜获得「码字达人徽章」！你已把坚持练成了习惯，日复一日，笔耕不辍。' },
   { name: '一句喜欢的诗', cost: 100, icon: '📖', reveal: '「且将新火试新茶，诗酒趁年华。」—— 苏轼' },
   { name: '一片宁静的风景', cost: 200, icon: '🌿', reveal: '想象一片午后的森林，阳光穿过树叶洒在肩头。你值得这片刻的安宁。' },
   { name: '给自己的一封信', cost: 500, icon: '✨', reveal: '亲爱的自己：谢谢你一直以来的坚持。每一个字都没有白写，每一步都算数。' }
@@ -1043,11 +1055,11 @@ function renderWorksTable() {
       '<td>' + formatDate(a.createdAt) + '</td>' +
       '<td>' + formatDate(a.updatedAt) + '</td>' +
       '<td>' +
-        '<button class="btn btn-sm btn-outline export-one" data-id="' + a.id + '">导出</button> ' +
-        '<button class="btn btn-sm btn-outline edit-one" data-id="' + a.id + '">编辑</button> ' +
-        '<button class="btn btn-sm btn-danger del-one" data-id="' + a.id + '">删除</button>' +
+      '<button class="btn btn-sm btn-outline export-one" data-id="' + a.id + '">导出</button> ' +
+      '<button class="btn btn-sm btn-outline edit-one" data-id="' + a.id + '">编辑</button> ' +
+      '<button class="btn btn-sm btn-danger del-one" data-id="' + a.id + '">删除</button>' +
       '</td>' +
-    '</tr>';
+      '</tr>';
   }).join('');
 
   // 事件绑定
@@ -1079,14 +1091,17 @@ document.getElementById('worksSort').addEventListener('change', function () {
 //  JSON 备份 / 恢复
 // ==============================
 document.getElementById('btnExportAll').addEventListener('click', function () {
+  var swBackup = typeof swExportAll === 'function' ? swExportAll() : null;
   var backup = {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     articles: articles,
     writingRecords: writingRecords,
     checkInRecords: checkInRecords,
     settings: settings,
-    points: pointsData
+    points: pointsData,
+    storyData: swBackup ? swBackup.projects : [],
+    storyLayout: swBackup ? swBackup.layout : {}
   };
   var json = JSON.stringify(backup, null, 2);
   var blob = new Blob([json], { type: 'application/json;charset=utf-8' });
@@ -1116,7 +1131,8 @@ document.getElementById('importFile').addEventListener('change', function (e) {
 
       confirmDialog(
         '即将导入备份数据，当前所有数据将被覆盖。\n\n' +
-        '备份包含：' + data.articles.length + ' 篇文章\n' +
+        '备份包含：' + data.articles.length + ' 篇文章' +
+        (data.storyData && data.storyData.length ? '、' + data.storyData.length + ' 个故事作品' : '') + '\n' +
         '备份时间：' + formatDate(data.exportedAt) + '\n\n' +
         '确认继续吗？'
       ).then(function (ok) {
@@ -1132,6 +1148,16 @@ document.getElementById('importFile').addEventListener('change', function (e) {
         saveData('pw_checkin_records', checkInRecords);
         saveUserSettings();
         savePoints();
+
+        // Restore story data if available
+        if (data.storyData) {
+          saveData('pw_story_data', { projects: data.storyData });
+          if (typeof swData !== 'undefined') swData = loadData('pw_story_data', { projects: [] });
+        }
+        if (data.storyLayout) {
+          saveData('pw_story_layout', data.storyLayout);
+          if (typeof swLayout !== 'undefined') swLayout = loadData('pw_story_layout', {});
+        }
 
         currentArticleId = null;
         currentChapterIdx = 0;
