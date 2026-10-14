@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>我的小小世界</title>
-  <link rel="stylesheet" href="style.css">
+  <title>个人写作编辑器</title>
+  <link rel="stylesheet" href="style.css?v=20261014b">
 </head>
 
 <body>
@@ -13,7 +13,7 @@
     <!-- 导航栏 -->
     <nav class="navbar" id="navbar">
       <div class="nav-inner">
-        <a class="nav-brand" href="#" data-view="home">我的小小世界</a>
+        <a class="nav-brand" href="#" data-view="home">个人码字编辑器</a>
         <button class="nav-toggle" id="navToggle" aria-label="菜单">
           <span></span><span></span><span></span>
         </button>
@@ -32,8 +32,8 @@
       <!-- Hero -->
       <section class="hero">
         <p class="hero-date" id="heroDate"></p>
-        <h1 class="hero-title">在这里，把日子写成句子。</h1>
-        <p class="hero-sub">这是一本只属于你的写作手账。没有催促，也没有围观。你写下的字句只会留在这台电脑的浏览器里，安静地等你下次打开。</p>
+        <h1 class="hero-title">我们所能拥有的最美好的经验是奥秘的经验。它是坚守在真正艺术和真正科学发源地上的基本感情。</h1>
+        <p class="hero-sub">写作内容与文件均存放在本地浏览器内存，如需要跨平台写作，请善用导出功能。</p>
       </section>
 
       <!-- 概览卡片 -->
@@ -146,7 +146,7 @@
             </div>
 
             <!-- 正文编辑区 -->
-            <textarea class="editor-textarea" id="editorContent" placeholder="开始写作..."></textarea>
+            <div class="editor-textarea" id="editorContent" contenteditable="true" data-placeholder="开始写作..."></div>
           </div>
         </div>
       </div>
@@ -192,33 +192,11 @@
           <h2 class="section-title">积分奖励</h2>
           <div class="rewards-info">
             <p>每次签到获得 <strong>10</strong> 积分，连续签到额外奖励 <strong>+5</strong> 积分。</p>
-          </div>
-          <div class="gift-list" id="giftList">
-            <div class="gift-card" data-cost="50">
-              <span class="gift-icon">🏆</span>
-              <span class="gift-name">码字达人徽章</span>
-              <span class="gift-cost">50 积分</span>
-              <button class="btn btn-sm btn-primary gift-btn">兑换</button>
-            </div>
-            <div class="gift-card" data-cost="100">
-              <span class="gift-icon">📖</span>
-              <span class="gift-name">一句喜欢的诗</span>
-              <span class="gift-cost">100 积分</span>
-              <button class="btn btn-sm btn-primary gift-btn">兑换</button>
-            </div>
-            <div class="gift-card" data-cost="200">
-              <span class="gift-icon">🌿</span>
-              <span class="gift-name">一片宁静的风景</span>
-              <span class="gift-cost">200 积分</span>
-              <button class="btn btn-sm btn-primary gift-btn">兑换</button>
-            </div>
-            <div class="gift-card" data-cost="500">
-              <span class="gift-icon">✨</span>
-              <span class="gift-name">给自己的一封信</span>
-              <span class="gift-cost">500 积分</span>
-              <button class="btn btn-sm btn-primary gift-btn">兑换</button>
+            <div class="rewards-actions">
+              <button class="btn btn-outline" id="btnManageGifts">管理礼物</button>
             </div>
           </div>
+          <div class="gift-list" id="giftList"></div>
           <div class="redeemed-gifts" id="redeemedGifts">
             <h3>已兑换的礼物</h3>
             <div id="redeemedList">
@@ -622,13 +600,13 @@
       <!-- 空状态 -->
       <div class="sw-empty" id="swEmpty">
         <p>欢迎来到故事工坊。</p>
-        <p>在这里收集灵感、梳理构思、管理人物，让每一个故事都井井有条。</p>
+        <p>在这里收集灵感、梳理构思、管理人物。</p>
         <button class="btn btn-primary" id="swBtnCreateFirst">创建第一个作品</button>
       </div>
     </main>
 
     <footer class="site-footer">
-      <p>我的小小世界 · 字句只留在本地</p>
+      <p>个人编辑器 · loki</p>
     </footer>
   </div>
 
@@ -654,8 +632,29 @@
     </div>
   </div>
 
-  <script src="script.js?v=20261014"></script>
-  <script src="storyworkshop.js?v=20261014"></script>
+  <!-- 礼物管理弹窗（礼物后台） -->
+  <div class="modal-overlay hidden" id="giftManageModal">
+    <div class="modal-box gift-manage-modal">
+      <h3 class="gm-title" id="gmTitle">添加新礼物</h3>
+      <p class="gm-sub">自定义你的奖励：设定名称、图标、所需积分，以及兑换后看到的文字。</p>
+      <div class="gm-form">
+        <input type="text" id="gmName" placeholder="礼物名称，如「喝一杯咖啡」">
+        <div class="gm-row">
+          <input type="text" id="gmIcon" placeholder="图标，如 ☕" maxlength="4">
+          <input type="number" id="gmCost" placeholder="所需积分" min="1">
+        </div>
+        <textarea id="gmReveal" placeholder="兑换后显示的文字..."></textarea>
+        <div class="gm-actions">
+          <button class="btn btn-primary" id="gmSave">保存礼物</button>
+          <button class="btn btn-outline" id="gmCancel">取消</button>
+        </div>
+      </div>
+      <div class="gm-list" id="gmList"></div>
+    </div>
+  </div>
+
+  <script src="script.js?v=20261014b"></script>
+  <script src="storyworkshop.js?v=20261014b"></script>
 </body>
 
 </html>

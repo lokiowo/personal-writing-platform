@@ -29,6 +29,14 @@ function countWords(text) {
   return cjk + words + other;
 }
 
+/** 将富文本 HTML 转为纯文本（用于字数统计与导出） */
+function htmlToText(html) {
+  if (!html) return '';
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.innerText || div.textContent || '';
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
@@ -203,9 +211,9 @@ function getTotalWordCount() {
 function getArticleWordCount(article) {
   if (!article) return 0;
   if (article.isSeries && article.chapters) {
-    return article.chapters.reduce(function (sum, ch) { return sum + countWords(ch.content || ''); }, 0);
+    return article.chapters.reduce(function (sum, ch) { return sum + countWords(htmlToText(ch.content || '')); }, 0);
   }
-  return countWords(article.content || '');
+  return countWords(htmlToText(article.content || ''));
 }
 
 /** 获取当前章节内容 */
@@ -236,8 +244,8 @@ function startEditTracking(article) {
 function recordEditDelta(article) {
   // 计算当前内容与上次保存内容的字数差
   var currentContent = getCurrentChapterContent(article);
-  var currentWords = countWords(currentContent || '');
-  var lastWords = countWords(lastSavedContent || '');
+  var currentWords = countWords(htmlToText(currentContent));
+  var lastWords = countWords(htmlToText(lastSavedContent));
 
   // 只有当前字数超过之前记录时才计入新增
   var delta = currentWords - lastWords;
@@ -333,10 +341,10 @@ function exportTxt(article) {
   var text = '';
   if (article.isSeries && article.chapters) {
     article.chapters.forEach(function (ch, i) {
-      text += '第' + (i + 1) + '章 ' + ch.title + '\n\n' + (ch.content || '') + '\n\n';
+      text += '第' + (i + 1) + '章 ' + ch.title + '\n\n' + htmlToText(ch.content) + '\n\n';
     });
   } else {
-    text = article.title + '\n\n' + (article.content || '');
+    text = article.title + '\n\n' + htmlToText(article.content);
   }
   var blob = new Blob(['\uFEFF' + text], { type: 'text/plain;charset=utf-8' });
   var url = URL.createObjectURL(blob);
@@ -467,17 +475,18 @@ function renderEditor() {
 
   // 正文
   var content = getCurrentChapterContent(article);
-  document.getElementById('editorContent').value = content;
+  document.getElementById('editorContent').innerHTML = content;
 
   // 更新状态
   updateEditorStatus(article);
 
-  // 应用字体设置
-  applyFontSettings();
+  // 同步工具栏按钮状态
+  syncToolbarState();
 }
 
 function updateEditorStatus(article) {
-  var content = document.getElementById('editorContent').value;
+  var el = document.getElementById('editorContent');
+  var content = (el && (el.innerText || el.textContent)) || '';
   var wc = countWords(content);
   document.getElementById('editorWordCount').textContent = wc + ' 字';
   document.getElementById('editorLastModified').textContent = '修改于 ' + formatDate(article ? article.updatedAt : '');
@@ -493,7 +502,7 @@ function autoSave() {
   if (!article) return;
 
   var title = document.getElementById('editorTitle').value.trim();
-  var content = document.getElementById('editorContent').value;
+  var content = document.getElementById('editorContent').innerHTML;
 
   article.title = title || '未命名文章';
   article.updatedAt = new Date().toISOString();
@@ -567,61 +576,125 @@ document.getElementById('btnAddChapter').addEventListener('click', function () {
   if (currentArticleId) addChapter(currentArticleId);
 });
 
-// 字体样式按钮
-document.getElementById('btnBold').addEventListener('click', function () {
-  this.classList.toggle('active');
-  applyFontSettings();
-});
-document.getElementById('btnItalic').addEventListener('click', function () {
-  this.classList.toggle('active');
-  applyFontSettings();
-});
-document.getElementById('btnUnderline').addEventListener('click', function () {
-  this.classList.toggle('active');
-  applyFontSettings();
-});
+// ==============================
+//  字体样式（作用于选中文本，避免“牵一发而动全身”）
+// ==============================
+function setEditorStyle(cmd, value) {
+  var editor = document.getElementById('editorContent');
+  if (!editor) return;
+  restoreEditorRange();
+  editor.focus();
 
-document.getElementById('fontFamily').addEventListener('change', function () {
-  settings.fontFamily = this.value;
-  saveUserSettings();
-  applyFontSettings();
-});
-document.getElementById('fontSize').addEventListener('change', function () {
-  settings.fontSize = this.value;
-  saveUserSettings();
-  applyFontSettings();
-});
+  if (cmd === 'bold' || cmd === 'italic' || cmd === 'underline') {
+    document.execCommand(cmd);
+  } else if (cmd === 'fontName') {
+    wrapSelectionWithStyle({ fontFamily: fontFamilyCss(value) });
+  } else if (cmd === 'fontSize') {
+    wrapSelectionWithStyle({ fontSize: value });
+  }
+
+  syncToolbarState();
+  updateEditorStatus(getArticleById(currentArticleId));
+  triggerAutoSave();
+}
+
+function fontFamilyCss(value) {
+  var map = {
+    'serif': "'Palatino Linotype', Palatino, 'Songti SC', 'SimSun', Georgia, serif",
+    'sans-serif': "'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif",
+    'monospace': "'Consolas', 'Courier New', 'SF Mono', monospace"
+  };
+  return map[value] || map.serif;
+}
+
+/** 用 span 包裹选中文本，实现局部字体 / 字号 */
+function wrapSelectionWithStyle(styleObj) {
+  var sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+    showToast('请先选中要修改的文字');
+    return;
+  }
+  var range = sel.getRangeAt(0);
+  var span = document.createElement('span');
+  Object.keys(styleObj).forEach(function (k) { span.style[k] = styleObj[k]; });
+
+  try {
+    range.surroundContents(span);
+  } catch (e) {
+    // 选区跨越多个元素时，退化为提取再包裹
+    var frag = range.extractContents();
+    span.appendChild(frag);
+    range.insertNode(span);
+  }
+
+  // 重新选中结果，便于连续调整
+  sel.removeAllRanges();
+  var newRange = document.createRange();
+  newRange.selectNodeContents(span);
+  sel.addRange(newRange);
+}
+
+/** 根据当前光标/选区状态同步工具栏按钮高亮 */
+function syncToolbarState() {
+  try {
+    setToolBtnActive('btnBold', document.queryCommandState('bold'));
+    setToolBtnActive('btnItalic', document.queryCommandState('italic'));
+    setToolBtnActive('btnUnderline', document.queryCommandState('underline'));
+  } catch (e) { /* 忽略兼容性异常 */ }
+}
+
+function setToolBtnActive(id, on) {
+  var el = document.getElementById(id);
+  if (el) { if (on) el.classList.add('active'); else el.classList.remove('active'); }
+}
 
 function saveUserSettings() {
   saveData('pw_settings', settings);
 }
 
-function applyFontSettings() {
-  var textarea = document.getElementById('editorContent');
-  if (!textarea) return;
-  var fontFamily = settings.fontFamily || 'serif';
-  var fontMap = {
-    'serif': 'var(--font-serif)',
-    'sans-serif': 'var(--font-sans)',
-    'monospace': 'var(--font-mono)'
-  };
-  textarea.style.fontFamily = fontMap[fontFamily] || 'var(--font-serif)';
-  textarea.style.fontSize = settings.fontSize || '16px';
+// 字体样式按钮
+document.getElementById('btnBold').addEventListener('click', function () {
+  setEditorStyle('bold');
+});
+document.getElementById('btnItalic').addEventListener('click', function () {
+  setEditorStyle('italic');
+});
+document.getElementById('btnUnderline').addEventListener('click', function () {
+  setEditorStyle('underline');
+});
+document.getElementById('fontFamily').addEventListener('change', function () {
+  setEditorStyle('fontName', this.value);
+});
+document.getElementById('fontSize').addEventListener('change', function () {
+  setEditorStyle('fontSize', this.value);
+});
 
-  // 粗体/斜体/下划线
-  var fw = document.getElementById('btnBold').classList.contains('active') ? 'bold' : 'normal';
-  var fs = document.getElementById('btnItalic').classList.contains('active') ? 'italic' : 'normal';
-  var td = document.getElementById('btnUnderline').classList.contains('active') ? 'underline' : 'none';
-  textarea.style.fontWeight = fw;
-  textarea.style.fontStyle = fs;
-  textarea.style.textDecoration = td;
+// ==============================
+//  记录 / 恢复编辑器选区（点击工具栏按钮不会丢失选中文本）
+// ==============================
+var savedEditorRange = null;
 
-  // 保存设置
-  settings.fontWeight = fw;
-  settings.fontStyle = fs;
-  settings.textDecoration = td;
-  saveUserSettings();
+function saveEditorRange() {
+  var editor = document.getElementById('editorContent');
+  var sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+    savedEditorRange = sel.getRangeAt(0).cloneRange();
+  }
 }
+
+function restoreEditorRange() {
+  var sel = window.getSelection();
+  if (savedEditorRange) {
+    sel.removeAllRanges();
+    sel.addRange(savedEditorRange);
+  }
+}
+
+// 光标移动时同步按钮状态，并记录选区
+document.addEventListener('selectionchange', saveEditorRange);
+['keyup', 'mouseup', 'click'].forEach(function (evt) {
+  document.getElementById('editorContent').addEventListener(evt, syncToolbarState);
+});
 
 // 文章列表切换后刷新
 var observer = new MutationObserver(function () { /* 无需额外操作 */ });
@@ -717,7 +790,7 @@ function renderCheckin() {
   document.getElementById('checkinPoints').textContent = pointsData.total;
 
   renderCalendar(calendarYear, calendarMonth);
-  updateGiftButtons();
+  renderGiftList();
 }
 
 // 签到按钮
@@ -796,63 +869,79 @@ document.getElementById('calNext').addEventListener('click', function () {
 // ==============================
 //  积分奖励系统
 // ==============================
-var gifts = [
-  { name: '码字达人徽章', cost: 50, icon: '🏆', reveal: '恭喜获得「码字达人徽章」！你已把坚持练成了习惯，日复一日，笔耕不辍。' },
-  { name: '一句喜欢的诗', cost: 100, icon: '📖', reveal: '「且将新火试新茶，诗酒趁年华。」—— 苏轼' },
-  { name: '一片宁静的风景', cost: 200, icon: '🌿', reveal: '想象一片午后的森林，阳光穿过树叶洒在肩头。你值得这片刻的安宁。' },
-  { name: '给自己的一封信', cost: 500, icon: '✨', reveal: '亲爱的自己：谢谢你一直以来的坚持。每一个字都没有白写，每一步都算数。' }
+var giftDefaults = [
+  { id: uid(), name: '码字达人徽章', cost: 50, icon: '🏆', reveal: '恭喜获得「码字达人徽章」！你已把坚持练成了习惯，日复一日，笔耕不辍。' },
+  { id: uid(), name: '一句喜欢的诗', cost: 100, icon: '📖', reveal: '「且将新火试新茶，诗酒趁年华。」—— 苏轼' },
+  { id: uid(), name: '一片宁静的风景', cost: 200, icon: '🌿', reveal: '想象一片午后的森林，阳光穿过树叶洒在肩头。你值得这片刻的安宁。' },
+  { id: uid(), name: '给自己的一封信', cost: 500, icon: '✨', reveal: '亲爱的自己：谢谢你一直以来的坚持。每一个字都没有白写，每一步都算数。' }
 ];
+var gifts = loadData('pw_gifts', giftDefaults);
 
-function updateGiftButtons() {
-  var btns = document.querySelectorAll('.gift-card');
-  btns.forEach(function (card) {
-    var cost = parseInt(card.getAttribute('data-cost'));
-    var name = card.querySelector('.gift-name').textContent;
-    var btn = card.querySelector('.gift-btn');
-    var redeemed = pointsData.redeemed.indexOf(name) !== -1;
-    if (redeemed) {
-      card.classList.add('redeemed');
-    } else {
-      card.classList.remove('redeemed');
-      btn.disabled = pointsData.total < cost;
-      btn.textContent = pointsData.total < cost ? '积分不足' : '兑换';
-    }
+function saveGifts() {
+  saveData('pw_gifts', gifts);
+}
+
+function findGift(id) {
+  return gifts.find(function (g) { return g.id === id; }) || null;
+}
+
+function renderGiftList() {
+  var container = document.getElementById('giftList');
+  if (!container) return;
+
+  if (gifts.length === 0) {
+    container.innerHTML = '<p class="empty-hint">还没有礼物，点「管理礼物」添加一个吧。</p>';
+    return;
+  }
+
+  container.innerHTML = gifts.map(function (g) {
+    var redeemed = pointsData.redeemed.indexOf(g.name) !== -1;
+    var cheap = pointsData.total < g.cost;
+    var btnText = redeemed ? '已兑换' : (cheap ? '积分不足' : '兑换');
+    var disabled = redeemed || cheap;
+    return '<div class="gift-card' + (redeemed ? ' redeemed' : '') + '" data-gift-id="' + g.id + '">' +
+      '<span class="gift-icon">' + escapeHtml(g.icon) + '</span>' +
+      '<span class="gift-name">' + escapeHtml(g.name) + '</span>' +
+      '<span class="gift-cost">' + g.cost + ' 积分</span>' +
+      '<button class="btn btn-sm btn-primary gift-btn"' + (disabled ? ' disabled' : '') + '>' + btnText + '</button>' +
+      '</div>';
+  }).join('');
+
+  container.querySelectorAll('.gift-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var card = this.closest('.gift-card');
+      if (card) redeemGift(card.getAttribute('data-gift-id'));
+    });
   });
 }
 
-document.querySelectorAll('.gift-btn').forEach(function (btn) {
-  btn.addEventListener('click', function () {
-    var card = this.closest('.gift-card');
-    var cost = parseInt(card.getAttribute('data-cost'));
-    var name = card.querySelector('.gift-name').textContent;
-    var icon = card.querySelector('.gift-icon').textContent;
+function redeemGift(id) {
+  var gift = findGift(id);
+  if (!gift) return;
 
-    if (pointsData.redeemed.indexOf(name) !== -1) {
-      showToast('你已经兑换过这个礼物了~');
-      return;
-    }
-    if (pointsData.total < cost) {
-      showToast('积分不足，继续加油写作和签到吧！');
-      return;
-    }
+  if (pointsData.redeemed.indexOf(gift.name) !== -1) {
+    showToast('你已经兑换过这个礼物了~');
+    return;
+  }
+  if (pointsData.total < gift.cost) {
+    showToast('积分不足，继续加油写作和签到吧！');
+    return;
+  }
 
-    pointsData.total -= cost;
-    pointsData.redeemed.push(name);
-    savePoints();
+  pointsData.total -= gift.cost;
+  pointsData.redeemed.push(gift.name);
+  savePoints();
 
-    // 显示礼物内容
-    var gift = gifts.find(function (g) { return g.name === name; });
-    document.getElementById('giftModalContent').innerHTML =
-      '<div class="gift-reveal">' + icon + '</div>' +
-      '<div class="gift-text">' + (gift ? gift.reveal : name) + '</div>';
-    document.getElementById('giftModal').classList.remove('hidden');
+  document.getElementById('giftModalContent').innerHTML =
+    '<div class="gift-reveal">' + escapeHtml(gift.icon) + '</div>' +
+    '<div class="gift-text">' + escapeHtml(gift.reveal || gift.name) + '</div>';
+  document.getElementById('giftModal').classList.remove('hidden');
 
-    updateGiftButtons();
-    renderCheckin();
-    renderRedeemedGifts();
-    showToast('兑换成功！');
-  });
-});
+  renderGiftList();
+  renderCheckin();
+  renderRedeemedGifts();
+  showToast('兑换成功！');
+}
 
 document.getElementById('giftModalClose').addEventListener('click', function () {
   document.getElementById('giftModal').classList.add('hidden');
@@ -870,6 +959,120 @@ function renderRedeemedGifts() {
     return '<div style="display:inline-block;margin:4px 8px;font-size:0.9rem;">' + icon + ' ' + escapeHtml(name) + '</div>';
   }).join('');
 }
+
+// ==============================
+//  礼物后台：自定义奖励
+// ==============================
+var gmEditingId = null;
+
+function openGiftManage() {
+  gmEditingId = null;
+  resetGmForm();
+  renderGiftManage();
+  document.getElementById('giftManageModal').classList.remove('hidden');
+}
+
+function closeGiftManage() {
+  document.getElementById('giftManageModal').classList.add('hidden');
+  gmEditingId = null;
+}
+
+function resetGmForm() {
+  document.getElementById('gmName').value = '';
+  document.getElementById('gmIcon').value = '';
+  document.getElementById('gmCost').value = '';
+  document.getElementById('gmReveal').value = '';
+  document.getElementById('gmTitle').textContent = '添加新礼物';
+  document.getElementById('gmSave').textContent = '保存礼物';
+}
+
+function renderGiftManage() {
+  var list = document.getElementById('gmList');
+  if (gifts.length === 0) {
+    list.innerHTML = '<p class="empty-hint">暂无礼物。</p>';
+    return;
+  }
+  list.innerHTML = gifts.map(function (g) {
+    return '<div class="gm-item" data-gift-id="' + g.id + '">' +
+      '<span class="gm-item-icon">' + escapeHtml(g.icon) + '</span>' +
+      '<span class="gm-item-info">' +
+        '<strong>' + escapeHtml(g.name) + '</strong>' +
+        '<em>' + g.cost + ' 积分</em>' +
+      '</span>' +
+      '<span class="gm-item-actions">' +
+        '<button class="gm-btn gm-edit" data-id="' + g.id + '">编辑</button>' +
+        '<button class="gm-btn gm-del" data-id="' + g.id + '">删除</button>' +
+      '</span>' +
+      '</div>';
+  }).join('');
+
+  list.querySelectorAll('.gm-edit').forEach(function (btn) {
+    btn.addEventListener('click', function () { gmEdit(this.getAttribute('data-id')); });
+  });
+  list.querySelectorAll('.gm-del').forEach(function (btn) {
+    btn.addEventListener('click', function () { gmDelete(this.getAttribute('data-id')); });
+  });
+}
+
+function gmEdit(id) {
+  var gift = findGift(id);
+  if (!gift) return;
+  gmEditingId = id;
+  document.getElementById('gmName').value = gift.name;
+  document.getElementById('gmIcon').value = gift.icon;
+  document.getElementById('gmCost').value = gift.cost;
+  document.getElementById('gmReveal').value = gift.reveal || '';
+  document.getElementById('gmTitle').textContent = '编辑礼物';
+  document.getElementById('gmSave').textContent = '保存修改';
+}
+
+function gmDelete(id) {
+  var gift = findGift(id);
+  if (!gift) return;
+  confirmDialog('确定删除礼物「' + gift.name + '」吗？').then(function (ok) {
+    if (!ok) return;
+    gifts = gifts.filter(function (g) { return g.id !== id; });
+    saveGifts();
+    renderGiftManage();
+    renderGiftList();
+    renderRedeemedGifts();
+    showToast('已删除');
+  });
+}
+
+function gmSave() {
+  var name = document.getElementById('gmName').value.trim();
+  var icon = document.getElementById('gmIcon').value.trim() || '🎁';
+  var cost = parseInt(document.getElementById('gmCost').value) || 0;
+  var reveal = document.getElementById('gmReveal').value.trim();
+
+  if (!name) { showToast('请填写礼物名称'); return; }
+  if (cost <= 0) { showToast('请填写正确的积分数'); return; }
+
+  if (gmEditingId) {
+    var gift = findGift(gmEditingId);
+    if (!gift) return;
+    gift.name = name;
+    gift.icon = icon;
+    gift.cost = cost;
+    gift.reveal = reveal;
+    showToast('礼物已更新');
+  } else {
+    gifts.push({ id: uid(), name: name, icon: icon, cost: cost, reveal: reveal });
+    showToast('礼物已添加');
+  }
+
+  saveGifts();
+  gmEditingId = null;
+  resetGmForm();
+  renderGiftManage();
+  renderGiftList();
+  renderRedeemedGifts();
+}
+
+document.getElementById('btnManageGifts').addEventListener('click', openGiftManage);
+document.getElementById('gmSave').addEventListener('click', gmSave);
+document.getElementById('gmCancel').addEventListener('click', closeGiftManage);
 
 // ==============================
 //  首页渲染
@@ -927,8 +1130,8 @@ function renderHome() {
     checkinBtn.disabled = false;
   }
 
-  // 更新积分显示
-  updateGiftButtons();
+  // 更新积分与礼物
+  renderGiftList();
 }
 
 // ==============================
@@ -1184,30 +1387,10 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// 正文中按需恢复设置
-function loadFontSettingsOnStart() {
-  if (settings.fontFamily) {
-    document.getElementById('fontFamily').value = settings.fontFamily;
-  }
-  if (settings.fontSize) {
-    document.getElementById('fontSize').value = settings.fontSize;
-  }
-  if (settings.fontWeight === 'bold') {
-    document.getElementById('btnBold').classList.add('active');
-  }
-  if (settings.fontStyle === 'italic') {
-    document.getElementById('btnItalic').classList.add('active');
-  }
-  if (settings.textDecoration === 'underline') {
-    document.getElementById('btnUnderline').classList.add('active');
-  }
-}
-
 // ==============================
 //  初始化
 // ==============================
 function init() {
-  loadFontSettingsOnStart();
   switchView('home');
   renderRedeemedGifts();
 }
@@ -1226,7 +1409,7 @@ window.addEventListener('beforeunload', function () {
 // 定期自动保存（每30秒）
 setInterval(function () {
   if (currentArticleId && document.getElementById('editorContent')) {
-    var current = document.getElementById('editorContent').value;
+    var current = document.getElementById('editorContent').innerHTML;
     var article = getArticleById(currentArticleId);
     if (article) {
       var saved = getCurrentChapterContent(article);
